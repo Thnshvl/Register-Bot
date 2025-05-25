@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import csv
+from db import get_user  # ✅ Using PostgreSQL now
 
 class Search(commands.Cog):
     def __init__(self, bot):
@@ -11,24 +11,18 @@ class Search(commands.Cog):
         if member is None:
             return await ctx.send("❌ Please mention a user to search. Example: `!search @User`")
 
-        tag = str(member)  # e.g., JohnDoe#1234
+        result = get_user(member.id)
 
-        try:
-            with open("database.csv", "r") as file:
-                reader = csv.reader(file)
-                for row in reader:
-                    if row[0] == tag:
-                        return await ctx.send(
-                            f"🔍 **Registration Info for {member.mention}:**\n"
-                            f"• **Name**: {row[1]}\n"
-                            f"• **Game ID**: {row[2]}\n"
-                            f"• **Email**: {row[3]}"
-                        )
-
-                await ctx.send(f"⚠️ No registration record found for {member.mention}.")
-
-        except FileNotFoundError:
-            await ctx.send("⚠️ No database found. No one has registered yet.")
+        if result:
+            name, game_id, email = result
+            await ctx.send(
+                f"🔍 **Registration Info for {member.mention}:**\n"
+                f"• **Name**: {name}\n"
+                f"• **Game ID**: {game_id}\n"
+                f"• **Email**: {email}"
+            )
+        else:
+            await ctx.send(f"⚠️ No registration record found for {member.mention}.")
 
 async def setup(bot):
     await bot.add_cog(Search(bot))
