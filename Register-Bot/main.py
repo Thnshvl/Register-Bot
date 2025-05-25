@@ -1,4 +1,5 @@
 import discord
+from db import setup  # Already here - good
 from discord.ext import commands
 from keep_alive import keep_alive
 import os
@@ -20,6 +21,7 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_ready():
+    setup()  # ✅ This sets up your PostgreSQL table
     print(f'{bot.user} is online!')
 
 @bot.event
