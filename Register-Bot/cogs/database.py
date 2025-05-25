@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import csv
+from db import get_all_users  # ✅ PostgreSQL version
 
 class Database(commands.Cog):
     def __init__(self, bot):
@@ -12,26 +12,21 @@ class Database(commands.Cog):
         if not any(role.name in allowed_roles for role in ctx.author.roles):
             return await ctx.send("❌ You don’t have permission to use this command.")
 
-        try:
-            with open("database.csv", "r") as file:
-                reader = csv.reader(file)
-                rows = list(reader)
+        users = get_all_users()
 
-                if not rows:
-                    return await ctx.send("📂 The registration database is empty.")
+        if not users:
+            return await ctx.send("📂 The registration database is empty.")
 
-                message = "**📋 Registration Database:**\n"
-                for i, row in enumerate(rows, start=1):
-                    message += f"{i}. **User**: {row[0]} | **Name**: {row[1]} | **Game ID**: {row[2]} | **Email**: {row[3]}\n"
+        message = "**📋 Registration Database:**\n"
+        for i, user in enumerate(users, start=1):
+            discord_tag, name, game_id, email = user
+            message += f"{i}. **User**: {discord_tag} | **Name**: {name} | **Game ID**: {game_id} | **Email**: {email}\n"
 
-                if len(message) > 1900:
-                    await ctx.author.send(message)
-                    await ctx.send("📬 Sent the database to your DMs.")
-                else:
-                    await ctx.send(message)
-
-        except FileNotFoundError:
-            await ctx.send("⚠️ No database found. No one has registered yet.")
+        if len(message) > 1900:
+            await ctx.author.send(message)
+            await ctx.send("📬 Sent the database to your DMs.")
+        else:
+            await ctx.send(message)
 
 async def setup(bot):
     await bot.add_cog(Database(bot))
