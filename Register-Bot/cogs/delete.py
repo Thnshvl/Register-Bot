@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import csv
+from db import delete_user, update_field  # ✅ PostgreSQL functions
 
 class Delete(commands.Cog):
     def __init__(self, bot):
@@ -11,47 +11,22 @@ class Delete(commands.Cog):
         if member is None:
             return await ctx.send("❌ Please mention a user. Example: `!delete @User` or `!delete @User email`")
 
-        tag = str(member)
-        found = False
+        field = field.lower() if field else None
+        valid_fields = ["name", "game_id", "email"]
 
-        try:
-            # Read all entries
-            with open("database.csv", "r") as file:
-                rows = list(csv.reader(file))
+        if field and field not in valid_fields:
+            return await ctx.send("❌ Invalid field. Use: `name`, `game_id`, or `email`.")
 
-            # Rewrite with updated or removed info
-            with open("database.csv", "w", newline='') as file:
-                writer = csv.writer(file)
-
-                for row in rows:
-                    if row[0] == tag:
-                        found = True
-
-                        if field is None:
-                            # Skip writing this row = delete full entry
-                            continue
-                        elif field.lower() == "name":
-                            row[1] = "N/A"
-                        elif field.lower() == "game_id":
-                            row[2] = "N/A"
-                        elif field.lower() == "email":
-                            row[3] = "N/A"
-                        else:
-                            await ctx.send("❌ Invalid field. Use: `name`, `game_id`, or `email`.")
-                            return
-
-                    writer.writerow(row)
-
-            if found:
-                if field:
-                    await ctx.send(f"✅ Deleted `{field}` from {member.mention}'s registration.")
-                else:
-                    await ctx.send(f"✅ Deleted all registration data for {member.mention}.")
+        if field:
+            success = update_field(member.id, field, "N/A")
+            if success:
+                await ctx.send(f"✅ Deleted `{field}` from {member.mention}'s registration.")
             else:
                 await ctx.send(f"⚠️ No registration record found for {member.mention}.")
-
-        except FileNotFoundError:
-            await ctx.send("⚠️ No database file found.")
+        else:
+            delete_user(member.id)
+            await ctx.send(f"✅ Deleted all registration data for {member.mention}.")
 
 async def setup(bot):
     await bot.add_cog(Delete(bot))
+
