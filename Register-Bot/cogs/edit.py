@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import csv
+from db import update_field  # ✅ Use PostgreSQL instead of CSV
 
 class Edit(commands.Cog):
     def __init__(self, bot):
@@ -13,33 +13,16 @@ class Edit(commands.Cog):
             return await ctx.send("❗ Usage: `!edit @User field new_value`\nValid fields: `name`, `game_id`, `email`")
 
         field = field.lower()
-        field_map = {"name": 1, "game_id": 2, "email": 3}
-
-        if field not in field_map:
+        if field not in ["name", "game_id", "email"]:
             return await ctx.send("❌ Invalid field. Use one of: `name`, `game_id`, `email`")
 
-        tag = str(member)
-        updated = False
+        success = update_field(member.id, field, new_value)
 
-        try:
-            with open("database.csv", "r") as file:
-                rows = list(csv.reader(file))
-
-            with open("database.csv", "w", newline='') as file:
-                writer = csv.writer(file)
-                for row in rows:
-                    if row[0] == tag:
-                        row[field_map[field]] = new_value
-                        updated = True
-                    writer.writerow(row)
-
-            if updated:
-                await ctx.send(f"✅ Updated `{field}` for {member.mention} to: `{new_value}`")
-            else:
-                await ctx.send(f"⚠️ No registration record found for {member.mention}")
-
-        except FileNotFoundError:
-            await ctx.send("⚠️ No database file found.")
+        if success:
+            await ctx.send(f"✅ Updated `{field}` for {member.mention} to: `{new_value}`")
+        else:
+            await ctx.send(f"⚠️ No registration record found for {member.mention}")
 
 async def setup(bot):
     await bot.add_cog(Edit(bot))
+
