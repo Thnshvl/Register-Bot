@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import csv
+from db import save_user  # ✅ PostgreSQL function instead of CSV
 
 is_locked = False  # Global toggle for registration lock
 
@@ -92,9 +92,8 @@ class Register(commands.Cog):
                 f"📋 **New Registration**\nUser: {ctx.author.mention}\nName: {name}\nGame ID: {game_id.content}\nEmail: {email.content}"
             )
 
-        with open("database.csv", mode="a", newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([str(ctx.author), name, game_id.content, email.content])
+        # ✅ Save to PostgreSQL instead of CSV
+        save_user(str(ctx.author), ctx.author.id, name, game_id.content, email.content)
 
         await channel.send("✅ Registration complete. This channel will now be deleted.")
         await channel.delete()
@@ -115,3 +114,4 @@ class Register(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Register(bot))
+
