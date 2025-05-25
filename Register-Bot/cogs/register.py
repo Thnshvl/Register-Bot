@@ -63,8 +63,8 @@ class Register(commands.Cog):
             f"• Name: {name}\n"
             f"• Game ID: {game_id.content}\n"
             f"• Email: {email.content}\n\n"
-            f"📜 By registering, you agree to the server rules. Your information—especially the Game ID—will be permanently linked to your Discord account and cannot be changed, in order to prevent smurfing and the use of alternate accounts.
-                Type accept to continue or cancel to stop."
+            f"📜 By registering, you agree to the server rules. Your information—especially the Game ID—will be permanently linked to your Discord account and cannot be changed, in order to prevent smurfing and the use of alternate accounts. "
+            f"Type `accept` to continue or `cancel` to stop."
         )
 
         while True:
